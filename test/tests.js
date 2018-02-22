@@ -133,6 +133,17 @@ describe('AppCachePlugin', () => {
       assert(compilation.assets[OUTPUT_NAME] instanceof AppCache);
     });
 
+    it('names the asset as specified by the output option ([hash:8])', () => {
+      const OUTPUT_NAME = 'my-special-manifest.[hash].appcache';
+      const OUTPUT_INTERPOLATE_NAME = 'my-special-manifest.048ea6ac6d375068cc971a5f74b4cc5f.appcache';
+
+      new AppCachePlugin({output: OUTPUT_NAME}).apply(compiler);
+      assert(Object.keys(compilation.assets).length === 2);
+      assert(compilation.assets[DEFAULT_MANIFEST_NAME] === undefined);
+      assert(compilation.assets[OUTPUT_INTERPOLATE_NAME]);
+      assert(compilation.assets[OUTPUT_INTERPOLATE_NAME] instanceof AppCache);
+    });
+
     it('it adds compilation assets to the app cache', () => {
       new AppCachePlugin().apply(compiler);
       const appCache = compilation.assets[DEFAULT_MANIFEST_NAME];

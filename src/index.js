@@ -1,3 +1,5 @@
+const loaderUtils = require('loader-utils');
+
 class AppCache {
 
   constructor(cache, network, fallback, settings, hash, comment) {
@@ -69,12 +71,22 @@ export default class AppCachePlugin {
     const {options: {output: outputOptions = {}} = {}} = compiler;
     const {publicPath = ''} = outputOptions;
 
+    const options = loaderUtils.getOptions(this) || {};
+    const context = options.context || this.rootContext || (this.options && this.options.context);
+
     compiler.plugin('emit', (compilation, callback) => {
       const appCache = new AppCache(this.cache, this.network, this.fallback, this.settings, compilation.hash, this.comment);
       Object.keys(compilation.assets)
         .filter(asset => !this.exclude.some(pattern => pattern.test(asset)))
         .forEach(asset => appCache.addAsset(publicPath + asset));
-      compilation.assets[this.output] = appCache;
+
+      const assetName = loaderUtils.interpolateName(this, this.output, {
+        context,
+        content: appCache.source(),
+        regExp: options.regExp,
+      });
+
+      compilation.assets[assetName] = appCache;
       callback();
     });
   }
